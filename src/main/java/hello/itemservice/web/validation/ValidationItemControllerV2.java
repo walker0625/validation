@@ -11,6 +11,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -25,6 +27,13 @@ import java.util.Map;
 public class ValidationItemControllerV2 {
 
     private final ItemRepository itemRepository;
+    private final ItemValidator itemValidator;
+
+    // Controller의 메소드가 호출 될 때마다 호출됨
+    @InitBinder
+    public void init(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(itemValidator); // Validator - supports()로 어떤 검증기를 사용 할지 결정
+    }
 
     @GetMapping
     public String items(Model model) {
@@ -153,15 +162,15 @@ public class ValidationItemControllerV2 {
         return "redirect:/validation/v2/items/{itemId}";
     }
 
-    @PostMapping("/add") // @ModelAttribute 바로 뒤에 BindingResult가 와야 함 > @ModelAttribute 생략 가능함(받는 객체를 특정하기 위해서는 필요할 듯)
+    //@PostMapping("/add") // @ModelAttribute 바로 뒤에 BindingResult가 와야 함 > @ModelAttribute 생략 가능함(받는 객체를 특정하기 위해서는 필요할 듯)
     public String addItemV4(Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
-        
-        // 처음에 type 오류로 return 하는 경우는 아래 오류는 포함하지 않기 위해 맨위에서도 처리 
+
+        // 처음에 type 오류로 return 하는 경우는 아래 오류는 포함하지 않기 위해 맨위에서도 처리
         // 검증에 실패하면 다시 정보를 담아서 입력폼으로 > bindingResult는 model에 자동으로 담김
         if(bindingResult.hasErrors()) {
             return "validation/v2/addForm";
         }
-        
+
         // ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "itemName", "required"); > 간단한 공백/empty는  이렇게 한 줄로도 처리 가능
         if(!StringUtils.hasText(item.getItemName())) {
             //bindingResult.addError(new FieldError("item", "itemName", item.getItemName(), false,new String[]{"required.item.itemName"},null,null));
@@ -187,6 +196,43 @@ public class ValidationItemControllerV2 {
             }
         }
 
+        if(bindingResult.hasErrors()) {
+            return "validation/v2/addForm";
+        }
+
+        // 성공 로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    //@PostMapping("/add") // @ModelAttribute 바로 뒤에 BindingResult가 와야 함 > @ModelAttribute 생략 가능함(받는 객체를 특정하기 위해서는 필요할 듯)
+    public String addItemV5(Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+        
+        // 처음에 type 오류로 return 하는 경우는 아래 오류는 포함하지 않기 위해 맨위에서도 처리
+        // 검증에 실패하면 다시 정보를 담아서 입력폼으로 > bindingResult는 model에 자동으로 담김
+        if(bindingResult.hasErrors()) {
+            return "validation/v2/addForm";
+        }
+
+        itemValidator.validate(item, bindingResult);
+
+        if(bindingResult.hasErrors()) {
+            return "validation/v2/addForm";
+        }
+
+        // 성공 로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    @PostMapping("/add") // @ModelAttribute 바로 뒤에 BindingResult가 와야 함 > @ModelAttribute 생략 가능함(받는 객체를 특정하기 위해서는 필요할 듯)
+    public String addItemV6(@Validated Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+
+        // 검증에 실패하면 다시 정보를 담아서 입력폼으로 > bindingResult는 model에 자동으로 담김
         if(bindingResult.hasErrors()) {
             return "validation/v2/addForm";
         }
