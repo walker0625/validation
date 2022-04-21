@@ -7,6 +7,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+// Sava/update 폼을 따로 쓰면서 단순 서버내부 dto로 사용됨
 @Data
 // @ScriptAssert(lang = "javascript", script = "_this.price * _this.quantity >= 10000", message = "총합이 10000원 이상이어야 합니다.")
 // global error 처리 > 기능이 제한적이라 비추천(java 코드 처리)

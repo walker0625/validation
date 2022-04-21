@@ -94,7 +94,7 @@ public class ValidationItemControllerV4 {
     }
 
     @PostMapping("/add") // @ModelAttribute("item") 해줘야 view에도 item으로 넘어감
-    public String addItem3(@Validated @ModelAttribute("item") ItemSaveForm itemSaveForm, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+    public String addItem3(@Validated @ModelAttribute("item") ItemSaveForm itemSaveForm, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
 
         //특정 필드가 아닌 복합 룰 검증 (@ScriptAssert을 대체)
         if (itemSaveForm.getPrice() != null && itemSaveForm.getQuantity() != null) {
@@ -117,7 +117,7 @@ public class ValidationItemControllerV4 {
         item.setQuantity(itemSaveForm.getQuantity());
 
         Item savedItem = itemRepository.save(item);
-        redirectAttributes.addAttribute("id", item.getId());
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
         redirectAttributes.addAttribute("status", true);
         return "redirect:/validation/v4/items/{itemId}";
     }
