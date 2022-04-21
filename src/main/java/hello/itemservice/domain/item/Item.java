@@ -12,18 +12,18 @@ import javax.validation.constraints.NotNull;
 // global error 처리 > 기능이 제한적이라 비추천(java 코드 처리)
 public class Item {
 
-    @NotNull(groups = {UpdateCheck.class})
+    //@NotNull(groups = {UpdateCheck.class})
     private Long id;
 
-    @NotBlank(message = "item의 이름은 NULL일 수 없습니다.", groups = {SaveCheck.class, UpdateCheck.class})
+    //@NotBlank(message = "item의 이름은 NULL일 수 없습니다.", groups = {SaveCheck.class, UpdateCheck.class})
     private String itemName;
 
-    @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
-    @Range(min = 1000, max = 1000000)
+    //@NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+    //@Range(min = 1000, max = 1000000)
     private Integer price;
 
-    @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
-    @Max(value = 9999, groups={SaveCheck.class})
+    //@NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+    //@Max(value = 9999, groups={SaveCheck.class})
     private Integer quantity;
 
     public Item() {

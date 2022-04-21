@@ -4,6 +4,8 @@ import hello.itemservice.domain.item.Item;
 import hello.itemservice.domain.item.ItemRepository;
 import hello.itemservice.domain.item.SaveCheck;
 import hello.itemservice.domain.item.UpdateCheck;
+import hello.itemservice.web.validation.form.ItemSaveForm;
+import hello.itemservice.web.validation.form.ItemUpdateForm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -67,7 +69,7 @@ public class ValidationItemControllerV4 {
         return "redirect:/validation/v4/items/{itemId}";
     }
 
-    @PostMapping("/add")
+    //@PostMapping("/add")
     public String addItem2(@Validated(SaveCheck.class) Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
 
         //특정 필드가 아닌 복합 룰 검증 (@ScriptAssert을 대체)
@@ -87,6 +89,35 @@ public class ValidationItemControllerV4 {
         // 성공 로직
         Item savedItem = itemRepository.save(item);
         redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v4/items/{itemId}";
+    }
+
+    @PostMapping("/add") // @ModelAttribute("item") 해줘야 view에도 item으로 넘어감
+    public String addItem3(@Validated @ModelAttribute("item") ItemSaveForm itemSaveForm, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+
+        //특정 필드가 아닌 복합 룰 검증 (@ScriptAssert을 대체)
+        if (itemSaveForm.getPrice() != null && itemSaveForm.getQuantity() != null) {
+            int resultPrice = itemSaveForm.getPrice() * itemSaveForm.getQuantity();
+            if (resultPrice < 10000) {
+                //bindingResult.addError(new ObjectError("item", new String[]{"totalPriceMin"}, new Object[]{10000, resultPrice}, null));
+                bindingResult.reject("totalPriceMin", new Object[]{10000, resultPrice}, null);
+            }
+        }
+
+        // 검증에 실패하면 다시 정보를 담아서 입력폼으로 > bindingResult는 model에 자동으로 담김
+        if(bindingResult.hasErrors()) {
+            return "validation/v4/addForm";
+        }
+
+        // 성공 로직
+        Item item = new Item();
+        item.setItemName(itemSaveForm.getItemName());
+        item.setPrice(itemSaveForm.getPrice());
+        item.setQuantity(itemSaveForm.getQuantity());
+
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("id", item.getId());
         redirectAttributes.addAttribute("status", true);
         return "redirect:/validation/v4/items/{itemId}";
     }
@@ -120,11 +151,11 @@ public class ValidationItemControllerV4 {
     }
 
     @PostMapping("/{itemId}/edit")
-    public String edit2(@PathVariable Long itemId, @Validated(UpdateCheck.class) @ModelAttribute Item item, BindingResult bindingResult) {
+    public String edit2(@PathVariable Long itemId, @Validated @ModelAttribute("item") ItemUpdateForm itemUpdateForm, BindingResult bindingResult) {
 
         //특정 필드가 아닌 복합 룰 검증 (@ScriptAssert을 대체)
-        if (item.getPrice() != null && item.getQuantity() != null) {
-            int resultPrice = item.getPrice() * item.getQuantity();
+        if (itemUpdateForm.getPrice() != null && itemUpdateForm.getQuantity() != null) {
+            int resultPrice = itemUpdateForm.getPrice() * itemUpdateForm.getQuantity();
             if (resultPrice < 10000) {
                 //bindingResult.addError(new ObjectError("item", new String[]{"totalPriceMin"}, new Object[]{10000, resultPrice}, null));
                 bindingResult.reject("totalPriceMin", new Object[]{10000, resultPrice}, null);
@@ -135,6 +166,11 @@ public class ValidationItemControllerV4 {
         if(bindingResult.hasErrors()) {
             return "validation/v4/editForm";
         }
+
+        Item item = new Item();
+        item.setItemName(itemUpdateForm.getItemName());
+        item.setPrice(itemUpdateForm.getPrice());
+        item.setQuantity(itemUpdateForm.getQuantity());
 
         itemRepository.update(itemId, item);
         return "redirect:/validation/v4/items/{itemId}";

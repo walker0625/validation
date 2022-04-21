@@ -27,7 +27,6 @@
             <p class="field-error" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
         </div>
 
-
         <div>
             <label for="itemName" th:text="#{label.item.itemName}"></label>
             <input type="text" id="itemName" class="form-control" placeholder="이름을 입력하세요"
